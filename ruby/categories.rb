@@ -2,16 +2,21 @@ require 'net/http'
 require 'rexml/document'
 
 # Your account_id number
-account_id = 001 
-api_key = "010101010101010101010"
+account_id = 100 
+api_key = "0101010101010101010101010101010101"
 
-uri = URI("https://api.merchantos.com/API/Account/#{account_id}/Category.xml")
-response = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
-  request = Net::HTTP::Get.new uri.request_uri
+http = Net::HTTP.new('api.merchantos.com', 443)
+http.use_ssl = true
+
+response = http.start do |http|
+  request = Net::HTTP::Get.new("/API/Account/#{account_id}/Category.xml")
+
   # or use username and password instead (not recommended)
   # request.basic_auth username, password
-	request.basic_auth api_key, 'apikey'
-	response = http.request request
+	request.basic_auth(api_key, 'apikey')
+	
+	# This gets return as response since it's the last thing in the block
+	http.request(request)
 end
 
 xml = REXML::Document.new(response.body);
