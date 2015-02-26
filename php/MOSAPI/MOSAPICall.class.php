@@ -59,27 +59,36 @@ class MOSAPICall
 			$xml = $xml->asXML();
 		}
 		
-		return self::_makeCall($curl,$control_url,$xml);
+		return self::_makeCall($curl,$control_url,$xml,$emitter);
 	}
 	
-	protected static function _makeCall($curl,$url,$xml)
+	protected static function _makeCall($curl,$url,$xml,$emitter)
 	{
 		$result = $curl->call($url,$xml);
 		
-		try
-		{
-			$result_simplexml = new SimpleXMLElement($result);
+
+		if($emitter=='json') {
+			$result_json= json_decode($result);
+			if (!is_object($result_json))
+			{
+				throw new Exception("MerchantOS API Call Error: Could not parse JSON, Response: " . $result);
+			}
+		} else {
+			try
+			{
+				$result_simplexml = new SimpleXMLElement($result);
+			}
+			catch (Exception $e)
+			{
+				throw new Exception("MerchantOS API Call Error: " . $e->getMessage() . ", Response: " . $result);
+			}
+
+			if (!is_object($result_simplexml))
+			{
+				throw new Exception("MerchantOS API Call Error: Could not parse XML, Response: " . $result);
+			}
 		}
-		catch (Exception $e)
-		{
-			throw new Exception("MerchantOS API Call Error: " . $e->getMessage() . ", Response: " . $result);
-		}
-		
-		if (!is_object($result_simplexml))
-		{
-			throw new Exception("MerchantOS API Call Error: Could not parse XML, Response: " . $result);
-		}
-		
+
 		return $result_simplexml;
 	}
 }
